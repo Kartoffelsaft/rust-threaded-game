@@ -1,0 +1,7 @@
+[package]
+name = "console_app_game"
+version = "0.1.0"
+authors = ["Ben Findley <ben.g.findley@gmail.com>"]
+edition = "2018"
+
+[dependencies]
