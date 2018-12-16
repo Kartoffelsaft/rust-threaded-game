@@ -1,4 +1,6 @@
+use console_app_game::start;
+
 fn main() 
 {
-    println!("Hello, world!");
+    start();
 }
