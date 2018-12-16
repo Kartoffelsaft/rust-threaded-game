@@ -11,10 +11,10 @@ pub mod general
             &'static str,
 
             (
-                Option<sync::mpsc::Receiver<String>>,
-                Option<sync::mpsc::Sender<String>>, 
+                Option<sync::mpsc::Receiver<ThreadMessage>>,   //read from thread
+                Option<sync::mpsc::Sender<ThreadMessage>>,     //tell thread
+                Option<sync::mpsc::Receiver<bool>>,            //thread finish loop
                 thread::JoinHandle<()>,
-
             )
         >,
     }
@@ -33,6 +33,7 @@ pub mod general
                 (
                     Some(from_input_r), 
                     None,
+                    None,
                     thread_input
                 )
             );
@@ -41,7 +42,7 @@ pub mod general
             new
         }
 
-        pub fn read(&mut self, thread: &str) -> Result<String, sync::mpsc::RecvError>
+        pub fn read(&mut self, thread: &str) -> Result<ThreadMessage, sync::mpsc::RecvError>
         {
             let read_src =
             match &self.interface
@@ -54,5 +55,10 @@ pub mod general
             };
             read_src.recv()
         }
+    }
+
+    pub enum ThreadMessage
+    {
+        InputO(String),
     }
 }
