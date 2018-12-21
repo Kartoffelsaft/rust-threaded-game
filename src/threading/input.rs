@@ -1,6 +1,6 @@
 use std::sync::{mpsc};
 use std::io::BufRead;
-use super::general::{ThreadMessage, PrintCommand};
+use super::{general::ThreadMessage, printer::PrintCommand};
 
 pub fn routine(output: mpsc::Sender<ThreadMessage>)
 {
