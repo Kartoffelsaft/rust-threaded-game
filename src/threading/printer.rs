@@ -1,5 +1,5 @@
 use std::sync::{mpsc};
-use super::general::{ThreadMessage, PrintCommand};
+use super::general::{ThreadMessage};
 
 pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 {
@@ -17,4 +17,9 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
             _ => panic!("Printer given unrecognizable command")
         }
     }
+}
+
+pub enum PrintCommand
+{
+    Basic(String),
 }
