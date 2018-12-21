@@ -1,6 +1,6 @@
-use std::sync::mpsc;
+use std::sync::{mpsc};
 use std::io::BufRead;
-use super::general::ThreadMessage;
+use super::general::{ThreadMessage, PrintCommand};
 
 pub fn routine(output: mpsc::Sender<ThreadMessage>)
 {
@@ -10,6 +10,6 @@ pub fn routine(output: mpsc::Sender<ThreadMessage>)
     {
         let mut inp = String::new();
         buffer.read_line(&mut inp).unwrap();
-        output.send(ThreadMessage::InputO(inp)).unwrap();
+        output.send(ThreadMessage::Printer(PrintCommand::Basic(inp))).unwrap();
     }
 }

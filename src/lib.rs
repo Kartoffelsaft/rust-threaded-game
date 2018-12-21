@@ -1,11 +1,13 @@
+use std::thread::sleep;
+
 mod threading;
 
 pub fn start()
 {
-    let mut threads = threading::general::EveryThreadInstance::new();
-    let input_test = match threads.read("input").unwrap()
+    let mut threads = threading::general::EveryThreadInstance::new_ptr();
+    
+    loop
     {
-        threading::general::ThreadMessage::InputO(s) => s,
-    };
-    println!("{}", input_test);
+        threads.try_message_thread("input");
+    }
 }

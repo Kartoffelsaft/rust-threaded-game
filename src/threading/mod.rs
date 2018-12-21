@@ -1,4 +1,5 @@
 mod input;
+mod printer;
 
 pub mod general
 {
@@ -10,55 +11,161 @@ pub mod general
         <
             &'static str,
 
-            (
-                Option<sync::mpsc::Receiver<ThreadMessage>>,   //read from thread
-                Option<sync::mpsc::Sender<ThreadMessage>>,     //tell thread
-                Option<sync::mpsc::Receiver<bool>>,            //thread finish loop
-                thread::JoinHandle<()>,
-            )
+            ThreadMetadata
         >,
     }
 
     impl EveryThreadInstance
     {
-        pub fn new() -> EveryThreadInstance
+        pub fn new_ptr() -> EveryThreadInstance
         {
-            let mut interface_new = HashMap::new();
+            let mut new = EveryThreadInstance{interface: HashMap::new()};
 
-            let (from_input_s, from_input_r) = sync::mpsc::channel();
-            let thread_input = thread::spawn(move || { super::input::routine(from_input_s); });
-            interface_new.insert
+            let (read_input_s, read_input_r) = sync::mpsc::channel();
+            let thread_input = thread::spawn(move || { super::input::routine(read_input_s); });
+            new.interface.insert
             (
                 "input", 
-                (
-                    Some(from_input_r), 
-                    None,
-                    None,
-                    thread_input
-                )
+                
+                ThreadMetadata
+                {
+                    read: Some(read_input_r),
+                    tell: None,
+                    finished: None,
+
+                    handle: thread_input,
+                }
             );
 
-            let new = EveryThreadInstance{interface: interface_new};
+            let (tell_printer_s, tell_printer_r) = sync::mpsc::channel();
+            let thread_printer = thread::spawn(move || { super::printer::routine(tell_printer_r) });
+            new.interface.insert
+            (
+                "printer", 
+                
+                ThreadMetadata
+                {
+                    read: None,
+                    tell: Some(tell_printer_s),
+                    finished: None,
+
+                    handle: thread_printer,
+                }
+            );
+
             new
         }
 
-        pub fn read(&mut self, thread: &str) -> Result<ThreadMessage, sync::mpsc::RecvError>
-        {
-            let read_src =
-            match &self.interface
+        // pub fn read(threads: &Arc<EveryThreadInstance>, thread: &str) -> Result<ThreadMessage, sync::mpsc::RecvError>
+        // {
+        //     let read_src =
+        //     match &threads
+        //         .interface
+        //         .get(thread)
+        //         .expect("thread does not exist")
+        //         .read
+        //     {
+        //         Some(r) => r,
+        //         None => panic!("thread does not have output"),
+        //     };
+        //     read_src.lock().unwrap().recv()
+        // }
+
+        // pub fn tell<'a>(threads: &'a Arc<sync::Mutex<EveryThreadInstance>>, thread: &str) -> &'a sync::Mutex<sync::mpsc::Sender<ThreadMessage>>
+        // {
+        //     let destination = 
+        //     match &threads
+        //         .lock()
+        //         .unwrap()
+        //         .interface
+        //         .get(thread)
+        //         .expect("thread does not exist")
+        //         .tell
+        //     {
+        //         Some(r) => r,
+        //         None => panic!("thread does not have input"),
+        //     };
+
+        //     destination     
+        // }
+
+        pub fn try_message_thread(&mut self, thread: &str)
+        {            
+            let source = self
+                .interface
                 .get(thread)
                 .expect("thread does not exist")
-                .0
+                .read
+                .as_ref()
+                .expect("thread does not have output")
+                .try_recv();
+
+            match source
             {
-                Some(r) => r,
-                None => panic!("thread does not have output"),
-            };
-            read_src.recv()
+                Result::Ok(c) => 
+                {
+                    self
+                        .interface
+                        .get("printer")
+                        .unwrap()
+                        .tell
+                        .as_ref()
+                        .expect("thread does not have input")
+                        .send(c)
+                        .expect("send did not work");
+                }
+
+                Result::Err(e) => match e
+                {
+                    sync::mpsc::TryRecvError::Empty => {}
+                    
+                    _ => panic!("try recv failed: {}", e)
+                }
+            }
+        }
+    }
+
+    struct ThreadMetadata
+    {
+        read: Option//read from thread
+            <sync::mpsc::Receiver
+                <ThreadMessage>>,                        
+
+        tell: Option//tell thread
+            <sync::mpsc::Sender
+                <ThreadMessage>>,                  
+
+        finished: Option//thread finish loop
+            <sync::mpsc::Receiver
+                <bool>>,
+        
+        handle: thread::JoinHandle<()>,
+    }
+
+    impl ThreadMetadata
+    {
+        pub fn new() -> ThreadMetadata
+        {
+            ThreadMetadata
+            {
+                read: None,
+                tell: None,
+                finished: None,
+
+                handle: thread::spawn(move || {}),
+            }
         }
     }
 
     pub enum ThreadMessage
     {
-        InputO(String),
+        Input(String),
+
+        Printer(PrintCommand),
+    }
+
+    pub enum PrintCommand
+    {
+        Basic(String),
     }
 }
