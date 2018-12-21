@@ -102,16 +102,21 @@ pub mod general
 
             match source
             {
-                Result::Ok(c) => 
+                Result::Ok(message) => 
                 {
+                    let reciever = match message
+                    {
+                        ThreadMessage::Printer(_) => "printer"
+                    };
+
                     self
                         .interface
-                        .get("printer")
+                        .get(reciever)
                         .unwrap()
                         .tell
                         .as_ref()
                         .expect("thread does not have input")
-                        .send(c)
+                        .send(message)
                         .expect("send did not work");
                 }
 
@@ -159,8 +164,6 @@ pub mod general
 
     pub enum ThreadMessage
     {
-        Input(String),
-
         Printer(PrintCommand),
     }
 
