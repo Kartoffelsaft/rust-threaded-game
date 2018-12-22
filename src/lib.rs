@@ -1,5 +1,3 @@
-use std::thread::sleep;
-
 mod threading;
 
 pub fn start()

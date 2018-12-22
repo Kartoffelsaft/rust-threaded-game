@@ -51,39 +51,6 @@ impl EveryThreadInstance
         new
     }
 
-    // pub fn read(threads: &Arc<EveryThreadInstance>, thread: &str) -> Result<ThreadMessage, sync::mpsc::RecvError>
-    // {
-    //     let read_src =
-    //     match &threads
-    //         .interface
-    //         .get(thread)
-    //         .expect("thread does not exist")
-    //         .read
-    //     {
-    //         Some(r) => r,
-    //         None => panic!("thread does not have output"),
-    //     };
-    //     read_src.lock().unwrap().recv()
-    // }
-
-    // pub fn tell<'a>(threads: &'a Arc<sync::Mutex<EveryThreadInstance>>, thread: &str) -> &'a sync::Mutex<sync::mpsc::Sender<ThreadMessage>>
-    // {
-    //     let destination = 
-    //     match &threads
-    //         .lock()
-    //         .unwrap()
-    //         .interface
-    //         .get(thread)
-    //         .expect("thread does not exist")
-    //         .tell
-    //     {
-    //         Some(r) => r,
-    //         None => panic!("thread does not have input"),
-    //     };
-
-    //     destination     
-    // }
-
     pub fn try_message_thread(&mut self, thread: &str)
     {            
         let source = self
@@ -140,21 +107,6 @@ struct ThreadMetadata
             <bool>>,
     
     handle: thread::JoinHandle<()>,
-}
-
-impl ThreadMetadata
-{
-    pub fn new() -> ThreadMetadata
-    {
-        ThreadMetadata
-        {
-            read: None,
-            tell: None,
-            finished: None,
-
-            handle: thread::spawn(move || {}),
-        }
-    }
 }
 
 pub enum ThreadMessage
