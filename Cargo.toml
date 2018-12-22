@@ -5,3 +5,4 @@ authors = ["Ben Findley <ben.g.findley@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+term_size = "0.3"
