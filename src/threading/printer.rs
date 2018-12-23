@@ -28,7 +28,7 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
             ThreadMessage::Printer(c) => 
             match c
             {
-                PrintCommand::Basic(s) => place_string(&mut screendata, &terminal_size, s, 5, 3)
+                PrintCommand::Basic(s) => place_string(&mut screendata, &terminal_size, s, 16, 0)
             }
 
             _ => panic!("Printer given unrecognizable command")
@@ -37,7 +37,7 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
         if need_print
         {
             let output: String = screendata.iter().collect();
-            print!("{}", output);
+            println!("{}", output);
         }
     }
 }

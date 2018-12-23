@@ -6,6 +6,6 @@ pub fn start()
     
     loop
     {
-        threads.try_message_thread("input");
+        threads.message_threads();
     }
 }

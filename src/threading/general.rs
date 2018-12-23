@@ -8,15 +8,18 @@ pub struct EveryThreadInstance
 
         ThreadMetadata
     >,
+
+    ThreadOutput: sync::mpsc::Receiver<ThreadMessage>
 }
 
 impl EveryThreadInstance
 {
     pub fn new_ptr() -> EveryThreadInstance
     {
-        let mut new = EveryThreadInstance{interface: HashMap::new()};
+        let (thread_output_s, thread_output_r) = sync::mpsc::channel();
+        let mut new = EveryThreadInstance{interface: HashMap::new(), ThreadOutput: thread_output_r};
 
-        let (read_input_s, read_input_r) = sync::mpsc::channel();
+        let read_input_s = thread_output_s.clone();
         let thread_input = thread::spawn(move || { super::input::routine(read_input_s); });
         new.interface.insert
         (
@@ -24,7 +27,6 @@ impl EveryThreadInstance
             
             ThreadMetadata
             {
-                read: Some(read_input_r),
                 tell: None,
                 finished: None,
 
@@ -40,7 +42,6 @@ impl EveryThreadInstance
             
             ThreadMetadata
             {
-                read: None,
                 tell: Some(tell_printer_s),
                 finished: None,
 
@@ -51,16 +52,11 @@ impl EveryThreadInstance
         new
     }
 
-    pub fn try_message_thread(&mut self, thread: &str)
+    pub fn message_threads(&mut self)
     {            
         let source = self
-            .interface
-            .get(thread)
-            .expect("thread does not exist")
-            .read
-            .as_ref()
-            .expect("thread does not have output")
-            .try_recv();
+            .ThreadOutput
+            .recv();
 
         match source
         {
@@ -82,22 +78,13 @@ impl EveryThreadInstance
                     .expect("send did not work");
             }
 
-            Result::Err(e) => match e
-            {
-                sync::mpsc::TryRecvError::Empty => {}
-                
-                _ => panic!("try recv failed: {}", e)
-            }
+            Result::Err(e) => panic!("try recv failed: {}", e)
         }
     }
 }
 
 struct ThreadMetadata
 {
-    read: Option//read from thread
-        <sync::mpsc::Receiver
-            <ThreadMessage>>,                        
-
     tell: Option//tell thread
         <sync::mpsc::Sender
             <ThreadMessage>>,                  
