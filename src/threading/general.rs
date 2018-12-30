@@ -9,7 +9,7 @@ pub struct EveryThreadInstance
         ThreadMetadata
     >,
 
-    ThreadOutput: sync::mpsc::Receiver<ThreadMessage>
+    thread_output: sync::mpsc::Receiver<ThreadMessage>
 }
 
 impl EveryThreadInstance
@@ -17,7 +17,7 @@ impl EveryThreadInstance
     pub fn new_ptr() -> EveryThreadInstance
     {
         let (thread_output_s, thread_output_r) = sync::mpsc::channel();
-        let mut new = EveryThreadInstance{interface: HashMap::new(), ThreadOutput: thread_output_r};
+        let mut new = EveryThreadInstance{interface: HashMap::new(), thread_output: thread_output_r};
 
         let read_input_s = thread_output_s.clone();
         let thread_input = thread::spawn(move || { super::input::routine(read_input_s); });
@@ -55,7 +55,7 @@ impl EveryThreadInstance
     pub fn message_threads(&mut self)
     {            
         let source = self
-            .ThreadOutput
+            .thread_output
             .recv();
 
         match source

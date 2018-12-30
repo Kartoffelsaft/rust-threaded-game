@@ -10,19 +10,12 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 
     loop
     {
-        let mut need_print = false;
+        let command = print_commands.recv().unwrap();
 
         let new_terminal_size = term_size::dimensions().expect("could not get terminal dimentions");
-        if new_terminal_size != terminal_size
-        {
-            terminal_size = (new_terminal_size.0, new_terminal_size.1 - 1);
+        terminal_size = (new_terminal_size.0, new_terminal_size.1 - 1);
+        screendata.resize(terminal_size.0 * terminal_size.1, ' ');
 
-            screendata = vec![' '; terminal_size.0 * terminal_size.1];
-
-            need_print = true;
-        } 
-
-        let command = print_commands.recv().unwrap();
         match command
         {
             ThreadMessage::Printer(c) => 
@@ -34,11 +27,9 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
             _ => panic!("Printer given unrecognizable command")
         }
 
-        if need_print
-        {
-            let output: String = screendata.iter().collect();
-            println!("{}", output);
-        }
+
+        let output: String = screendata.iter().collect();
+        print!("{}\n", output);
     }
 }
 
@@ -56,7 +47,8 @@ fn place_char
     y: usize
 )
 {
-    screen[screen_size.0 * y + x] = character;
+    if let Some(screen_loc) = screen.get_mut(y*screen_size.0 + x)
+    {*screen_loc = character;}
 }
 
 fn place_string

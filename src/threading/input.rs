@@ -10,6 +10,7 @@ pub fn routine(output: mpsc::Sender<ThreadMessage>)
     {
         let mut inp = String::new();
         buffer.read_line(&mut inp).unwrap();
+        inp = inp.trim().to_owned();
         output.send(ThreadMessage::Printer(PrintCommand::Basic(inp))).unwrap();
     }
 }
