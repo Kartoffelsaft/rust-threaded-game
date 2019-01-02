@@ -87,8 +87,14 @@ fn place_char
     y: usize
 )
 {
-    if let Some(screen_loc) = screen.get_mut(y*screen_size.0 + x)
-    {*screen_loc = character;}
+    if x < screen_size.0 &&
+       x > 0 &&
+       y < screen_size.1 &&
+       y > 0
+    {
+        if let Some(screen_loc) = screen.get_mut(y*screen_size.0 + x)
+        {*screen_loc = character;}
+    }
 }
 
 fn place_string
