@@ -7,33 +7,34 @@ const APPEARANCE_PLAYER: char = '@';
 
 pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 {
-    let mut terminal_size = (0usize, 0usize);
-    let mut screen_data: Vec<char> = vec!();
-    let mut screen_objects = ScreenObjects::new();
+    let mut screen = Screen
+    {
+        data: vec!(),
+        objects: ScreenObjects::new(),
+        size: (0usize, 0usize)
+    };
 
     loop
     {
         let command = print_commands.recv().unwrap();
 
-        let new_terminal_size = term_size::dimensions().expect("could not get terminal dimentions");
-        terminal_size = (new_terminal_size.0, new_terminal_size.1 - 1);
-        screen_data.resize(terminal_size.0 * terminal_size.1, ' ');
+        screen.update_screen_size();
 
         match command
         {
             ThreadMessage::Printer(c) => 
             match c
             {
-                PrintCommand::Basic(s) => place_string(&mut screen_data, &terminal_size, s, 16, 0),
-                PrintCommand::PlayerUpdate(l) => screen_objects.player = l,
+                PrintCommand::Basic(s) => screen.place_string(s, (16, 0)),
+                PrintCommand::PlayerUpdate(l) => screen.objects.player = l,
             }
 
             _ => panic!("Printer given unrecognizable command")
         }
 
-        screen_objects.update_screen(&mut screen_data, &terminal_size);
+        screen.update_screen();
 
-        let output: String = screen_data.iter().collect();
+        let output: String = screen.data.iter().collect();
         print!("{}\n", output);
     }
 }
@@ -42,6 +43,13 @@ pub enum PrintCommand
 {
     Basic(String),
     PlayerUpdate((i16, i16)),
+}
+
+struct Screen
+{
+    data: Vec<char>,
+    objects: ScreenObjects,
+    size: (usize, usize)
 }
 
 struct ScreenObjects
@@ -58,59 +66,58 @@ impl ScreenObjects
             player: (0, 0),
         }
     }
+}
 
-    fn update_screen
+impl Screen
+{
+    fn place_char
     (
-        &self,
-        mut screen: &mut Vec<char>,
-        screen_size: &(usize, usize),
+        &mut self,
+        character: char, 
+        loc: (usize, usize),
     )
     {
-        clear(screen);
-        place_char
+        if loc.0 < self.size.0 &&
+        loc.0 > 0 &&
+        loc.1 < self.size.1 &&
+        loc.1 > 0
+        {
+            if let Some(screen_loc) = self.data.get_mut(loc.1*self.size.0 + loc.0)
+            {*screen_loc = character;}
+        }
+    }
+
+    fn place_string
+    (
+        &mut self,
+        string: String,
+        loc: (usize, usize),
+    )
+    {
+        for (i, c) in string.chars().enumerate()
+        {
+            self.place_char(c, (loc.0+i, loc.1));
+        }
+    }
+
+    fn clear(&mut self)
+    {self.data = vec![' '; self.data.len()];}
+
+    fn update_screen(&mut self)
+    {
+        self.clear();
+        self.place_char
         (
-            &mut screen, 
-            screen_size, 
             APPEARANCE_PLAYER, 
-            self.player.0.clone() as usize, 
-            self.player.1.clone() as usize
+            (self.objects.player.0.clone() as usize,
+            self.objects.player.1.clone() as usize)
         );
     }
-}
 
-fn place_char
-(
-    mut screen: &mut Vec<char>, 
-    screen_size: &(usize, usize), 
-    character: char, 
-    x: usize, 
-    y: usize
-)
-{
-    if x < screen_size.0 &&
-       x > 0 &&
-       y < screen_size.1 &&
-       y > 0
+    fn update_screen_size(&mut self)
     {
-        if let Some(screen_loc) = screen.get_mut(y*screen_size.0 + x)
-        {*screen_loc = character;}
+        let new_terminal_size = term_size::dimensions().expect("could not get terminal dimentions");
+        self.size = (new_terminal_size.0, new_terminal_size.1 - 1);
+        self.data.resize(self.size.0 * self.size.1, ' ');
     }
 }
-
-fn place_string
-(
-    mut screen: &mut Vec<char>,
-    screen_size: &(usize, usize),
-    string: String,
-    x: usize,
-    y: usize
-)
-{
-    for (i, c) in string.chars().enumerate()
-    {
-        place_char(&mut screen, screen_size, c, x+i, y)
-    }
-}
-
-fn clear(screen: &mut Vec<char>)
-{*screen = vec![' '; screen.len()];}
