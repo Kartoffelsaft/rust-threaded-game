@@ -49,6 +49,21 @@ impl EveryThreadInstance
             }
         );
 
+        let (tell_player_s, tell_player_r) = sync::mpsc::channel();
+        let thread_player = thread::spawn(move || { super::player::routine(tell_player_r) });
+        new.interface.insert
+        (
+            "player", 
+            
+            ThreadMetadata
+            {
+                tell: Some(tell_player_s),
+                finished: None,
+
+                handle: thread_player,
+            }
+        );
+
         new
     }
 
@@ -64,7 +79,8 @@ impl EveryThreadInstance
             {
                 let reciever = match message
                 {
-                    ThreadMessage::Printer(_) => "printer"
+                    ThreadMessage::Printer(_) => "printer",
+                    ThreadMessage::Player(_) => "player",
                 };
 
                 self
@@ -99,4 +115,5 @@ struct ThreadMetadata
 pub enum ThreadMessage
 {
     Printer(super::printer::PrintCommand),
+    Player(super::player::PlayerCommand),
 }
