@@ -50,7 +50,8 @@ impl EveryThreadInstance
         );
 
         let (tell_player_s, tell_player_r) = sync::mpsc::channel();
-        let thread_player = thread::spawn(move || { super::player::routine(tell_player_r) });
+        let read_player_s = thread_output_s.clone();
+        let thread_player = thread::spawn(move || { super::player::routine(tell_player_r, read_player_s) });
         new.interface.insert
         (
             "player", 
