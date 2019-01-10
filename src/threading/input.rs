@@ -6,11 +6,19 @@ pub fn routine(output: mpsc::Sender<ThreadMessage>)
 {
     let buffer_nl = std::io::stdin();
     let mut buffer = buffer_nl.lock();
+
+    let mut last_input = String::new();
+
     loop
     {
         let mut inp = String::new();
         buffer.read_line(&mut inp).unwrap();
         inp = inp.trim().to_owned();
+
+        if inp == ""
+        {inp = last_input.clone();}
+        last_input = inp.clone();
+
         for msg in parse_input(inp)
         {
             output.send(msg).unwrap();
