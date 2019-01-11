@@ -115,6 +115,6 @@ struct ThreadMetadata
 
 pub enum ThreadMessage
 {
-    Printer(super::printer::PrintCommand),
+    Printer(Vec<super::printer::PrintCommand>),
     Player(super::player::PlayerCommand),
 }

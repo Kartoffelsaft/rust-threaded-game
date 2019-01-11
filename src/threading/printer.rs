@@ -22,11 +22,14 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 
         match command
         {
-            ThreadMessage::Printer(c) => 
-            match c
+            ThreadMessage::Printer(mut c) => 
+            while c.len() > 0
             {
-                PrintCommand::Basic(s) => screen.place_string(s, (16, 0)),
-                PrintCommand::PlayerUpdate(l) => screen.objects.player = l,
+                match c.pop().unwrap()
+                {
+                    PrintCommand::Basic(s) => screen.place_string(s, (16, 0)),
+                    PrintCommand::PlayerUpdate(l) => screen.objects.player = l,
+                }
             }
 
             _ => panic!("Printer given unrecognizable command")
