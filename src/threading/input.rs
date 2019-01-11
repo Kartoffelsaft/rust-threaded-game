@@ -61,5 +61,8 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
         }
     }
 
+    if return_commands.len() == 0
+    {return_commands = vec!(ThreadMessage::Printer(vec!(super::printer::PrintCommand::Refresh)));}
+
     return_commands
 }

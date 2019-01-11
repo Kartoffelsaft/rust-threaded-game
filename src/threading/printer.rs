@@ -27,7 +27,7 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
             {
                 match c.pop().unwrap()
                 {
-                    PrintCommand::Basic(s) => screen.place_string(s, (16, 0)),
+                    PrintCommand::Refresh => (),
                     PrintCommand::PlayerUpdate(l) => screen.objects.player = l,
                 }
             }
@@ -44,7 +44,7 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 
 pub enum PrintCommand
 {
-    Basic(String),
+    Refresh,
     PlayerUpdate((i16, i16)),
 }
 
