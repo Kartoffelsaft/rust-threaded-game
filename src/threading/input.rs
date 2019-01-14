@@ -1,6 +1,6 @@
 use std::sync::{mpsc};
 use std::io::BufRead;
-use super::{general::ThreadMessage, printer::PrintCommand, player::PlayerCommand::*};
+use super::{general::{ThreadMessage, ThreadMessage::*}, printer::PrintCommand, player::PlayerCommand::*};
 
 pub fn routine(output: mpsc::Sender<ThreadMessage>)
 {
@@ -41,19 +41,19 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
             {
                 match word
                 {
-                    "up" => return_commands.push
-                    (ThreadMessage::Player(Up(repeat_command_times.clone()))),
+                    "up" | "u" => return_commands.push
+                    (Player(Up(repeat_command_times.clone()))),
                     
-                    "down" => return_commands.push
-                    (ThreadMessage::Player(Down(repeat_command_times.clone()))),
+                    "down" | "d" => return_commands.push
+                    (Player(Down(repeat_command_times.clone()))),
 
-                    "left" => return_commands.push
-                    (ThreadMessage::Player(Left(repeat_command_times.clone()))),
+                    "left" | "l" => return_commands.push
+                    (Player(Left(repeat_command_times.clone()))),
 
-                    "right" => return_commands.push
-                    (ThreadMessage::Player(Right(repeat_command_times.clone()))),
+                    "right" | "r" => return_commands.push
+                    (Player(Right(repeat_command_times.clone()))),
 
-                    _ => {},
+                    _ => (),
                 }
 
                 repeat_command_times = 1;
@@ -62,7 +62,7 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
     }
 
     if return_commands.len() == 0
-    {return_commands = vec!(ThreadMessage::Printer(vec!(super::printer::PrintCommand::Refresh)));}
+    {return_commands = vec!(Printer(vec!(PrintCommand::Refresh)));}
 
     return_commands
 }
