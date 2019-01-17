@@ -1,4 +1,17 @@
-use std::{thread, sync, collections::HashMap};
+use std::
+{
+    thread, 
+    sync::
+    {
+        mpsc::
+        {
+            Receiver,
+            Sender,
+            channel,
+        }
+    }, 
+    collections::HashMap
+};
 
 pub struct EveryThreadInstance
 {
@@ -9,14 +22,14 @@ pub struct EveryThreadInstance
         ThreadMetadata
     >,
 
-    thread_output: sync::mpsc::Receiver<ThreadMessage>
+    thread_output: Receiver<ThreadMessage>
 }
 
 impl EveryThreadInstance
 {
     pub fn new_ptr() -> EveryThreadInstance
     {
-        let (thread_output_s, thread_output_r) = sync::mpsc::channel();
+        let (thread_output_s, thread_output_r) = channel();
         let mut new = EveryThreadInstance{interface: HashMap::new(), thread_output: thread_output_r};
 
         let read_input_s = thread_output_s.clone();
@@ -34,7 +47,7 @@ impl EveryThreadInstance
             }
         );
 
-        let (tell_printer_s, tell_printer_r) = sync::mpsc::channel();
+        let (tell_printer_s, tell_printer_r) = channel();
         let thread_printer = thread::spawn(move || { super::printer::routine(tell_printer_r) });
         new.interface.insert
         (
@@ -49,7 +62,7 @@ impl EveryThreadInstance
             }
         );
 
-        let (tell_player_s, tell_player_r) = sync::mpsc::channel();
+        let (tell_player_s, tell_player_r) = channel();
         let read_player_s = thread_output_s.clone();
         let thread_player = thread::spawn(move || { super::player::routine(tell_player_r, read_player_s) });
         new.interface.insert
@@ -65,7 +78,7 @@ impl EveryThreadInstance
             }
         );
 
-        let (tell_world_s, tell_world_r) = sync::mpsc::channel();
+        let (tell_world_s, tell_world_r) = channel();
         let read_world_s = thread_output_s.clone();
         let thread_world = thread::spawn(move || { super::world::routine(tell_world_r, read_world_s) });
         new.interface.insert
@@ -120,11 +133,11 @@ impl EveryThreadInstance
 struct ThreadMetadata
 {
     tell: Option//tell thread
-        <sync::mpsc::Sender
+        <Sender
             <ThreadMessage>>,                  
 
     finished: Option//thread finish loop
-        <sync::mpsc::Receiver
+        <Receiver
             <bool>>,
     
     handle: thread::JoinHandle<()>,
