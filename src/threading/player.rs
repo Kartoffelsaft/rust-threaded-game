@@ -28,12 +28,9 @@ pub fn routine(commands: mpsc::Receiver<ThreadMessage>, teller: mpsc::Sender<Thr
         (
             ThreadMessage::Printer
             (
-                vec!
+                super::printer::PrintCommand::PlayerUpdate
                 (
-                    super::printer::PrintCommand::PlayerUpdate
-                    (
-                        player.location
-                    )
+                    player.location
                 )
             )
         ).expect("player could not send location");

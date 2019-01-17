@@ -53,6 +53,9 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
                     "right" | "r" => return_commands.push
                     (Player(Right(repeat_command_times.clone()))),
 
+                    "t" => return_commands.push
+                    (World(super::world::WorldCommand::GenerateBuilding(((5, 3), (4, 4))))),
+
                     _ => (),
                 }
 
@@ -62,7 +65,7 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
     }
 
     if return_commands.len() == 0
-    {return_commands = vec!(Printer(vec!(PrintCommand::Refresh)));}
+    {return_commands = vec!(Printer(PrintCommand::Refresh));}
 
     return_commands
 }

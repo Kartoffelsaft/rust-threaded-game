@@ -65,6 +65,22 @@ impl EveryThreadInstance
             }
         );
 
+        let (tell_world_s, tell_world_r) = sync::mpsc::channel();
+        let read_world_s = thread_output_s.clone();
+        let thread_world = thread::spawn(move || { super::world::routine(tell_world_r, read_world_s) });
+        new.interface.insert
+        (
+            "world", 
+            
+            ThreadMetadata
+            {
+                tell: Some(tell_world_s),
+                finished: None,
+                
+                handle: thread_world,
+            }
+        );
+
         new
     }
 
@@ -82,6 +98,7 @@ impl EveryThreadInstance
                 {
                     ThreadMessage::Printer(_) => "printer",
                     ThreadMessage::Player(_) => "player",
+                    ThreadMessage::World(_) => "world",
                 };
 
                 self
@@ -115,6 +132,7 @@ struct ThreadMetadata
 
 pub enum ThreadMessage
 {
-    Printer(Vec<super::printer::PrintCommand>),
+    Printer(super::printer::PrintCommand),
     Player(super::player::PlayerCommand),
+    World(super::world::WorldCommand),
 }
