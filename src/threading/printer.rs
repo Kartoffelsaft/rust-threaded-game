@@ -46,7 +46,7 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 pub enum PrintCommand
 {
     Refresh,
-    PlayerUpdate((i16, i16)),
+    PlayerUpdate((i32, i32)),
     WorldUpdate(HashMap<(i32, i32), WorldElement>)
 }
 
@@ -59,7 +59,7 @@ struct Screen
 
 struct ScreenObjects
 {
-    player: (i16, i16),
+    player: (i32, i32),
     world: HashMap<(i32, i32), WorldElement>,
 }
 

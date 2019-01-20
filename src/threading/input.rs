@@ -1,6 +1,6 @@
 use std::sync::{mpsc};
 use std::io::BufRead;
-use super::{general::{ThreadMessage, ThreadMessage::*}, printer::PrintCommand, player::PlayerCommand::*};
+use super::{general::{ThreadMessage, ThreadMessage::*}, printer::PrintCommand, player::{PlayerCommand::*, Move::*}};
 
 pub fn routine(output: mpsc::Sender<ThreadMessage>)
 {
@@ -42,16 +42,16 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
                 match word
                 {
                     "up" | "u" => return_commands.push
-                    (Player(Up(repeat_command_times.clone()))),
+                    (Player(Move(Up(repeat_command_times.clone())))),
                     
                     "down" | "d" => return_commands.push
-                    (Player(Down(repeat_command_times.clone()))),
+                    (Player(Move(Down(repeat_command_times.clone())))),
 
                     "left" | "l" => return_commands.push
-                    (Player(Left(repeat_command_times.clone()))),
+                    (Player(Move(Left(repeat_command_times.clone())))),
 
                     "right" | "r" => return_commands.push
-                    (Player(Right(repeat_command_times.clone()))),
+                    (Player(Move(Right(repeat_command_times.clone())))),
 
                     "t" => return_commands.push
                     (World(super::world::WorldCommand::GenerateBuilding(((5, 3), (4, 4))))),

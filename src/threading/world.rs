@@ -15,6 +15,15 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
                 match c 
                 {
                     WorldCommand::GenerateBuilding(b) => world.place_building(b.0, b.1),
+                    WorldCommand::CheckCollision(f, t, c) => 
+                    {
+                        let coll = world.check_collision(f, t);
+                        match c
+                        {
+                            WorldCollider::Player => 
+                            teller.send(ThreadMessage::Player(super::player::PlayerCommand::Collisions(coll))),
+                        };
+                    },
                 }
             }
 
@@ -37,6 +46,12 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
 pub enum WorldCommand
 {
     GenerateBuilding(((i32, i32), (u16, u16))),
+    CheckCollision((i32, i32), (i32, i32), WorldCollider)
+}
+
+pub enum WorldCollider
+{
+    Player,
 }
 
 struct WorldData
@@ -82,5 +97,55 @@ impl WorldData
     fn place_world_element(&mut self, loc: (i32, i32), element: WorldElement)
     {
         self.elements.insert(loc, element);
+    }
+
+    fn check_collision(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)>
+    {
+        let mut collisions: Vec<(i32, i32)> = vec!();
+        
+        let mut top_left: (i32, i32) = (std::i32::MIN, std::i32::MIN);
+        let mut bottom_right: (i32, i32) = (std::i32::MIN, std::i32::MIN);
+
+        if from.0 > to.0
+        {
+            bottom_right.0 = from.0;
+            top_left.0 = to.0;
+        }
+        else
+        {
+            bottom_right.0 = to.0;
+            top_left.0 = from.0;
+        }
+
+        if from.1 > to.1
+        {
+            bottom_right.1 = from.1;
+            top_left.1 = to.1;
+        }
+        else
+        {
+            bottom_right.1 = to.1;
+            top_left.1 = from.1;
+        }
+
+        for i in top_left.0..(bottom_right.0 + 1)
+        {
+            for j in top_left.1..(bottom_right.1 + 1)
+            {
+                match self.elements.get(&(i, j))
+                {
+                    Some(e) => match e
+                    {
+                        WorldElement::Wall => collisions.push((i, j)),
+
+                        _ => ()
+                    },
+
+                    None => ()
+                }
+            }
+        }
+
+        collisions
     }
 }
