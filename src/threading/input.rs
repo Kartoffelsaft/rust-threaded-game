@@ -1,8 +1,30 @@
-use std::sync::{mpsc};
-use std::io::BufRead;
-use super::{general::{ThreadMessage, ThreadMessage::*}, printer::PrintCommand, player::{PlayerCommand::*, Move::*}};
+use std::
+{
+    sync::mpsc::
+    {
+        Sender,
+    },
 
-pub fn routine(output: mpsc::Sender<ThreadMessage>)
+    io::BufRead
+};
+use super::
+{
+    general::
+    {
+        ThreadMessage, 
+        ThreadMessage::*
+    }, 
+    
+    printer::PrintCommand, 
+    
+    player::
+    {
+        PlayerCommand::*, 
+        Move::*
+    }
+};
+
+pub fn routine(output: Sender<ThreadMessage>)
 {
     let buffer_nl = std::io::stdin();
     let mut buffer = buffer_nl.lock();
@@ -16,17 +38,13 @@ pub fn routine(output: mpsc::Sender<ThreadMessage>)
         inp = inp.trim().to_owned();
 
         output.send
-        (
-            ThreadMessage::Printer
-            (
-                super::printer::PrintCommand::Refresh
-            )
-        ).expect("printer could not refresh screen");
+            (ThreadMessage::Printer
+                (super::printer::PrintCommand::Refresh
+        )).expect("printer could not refresh screen");
 
         if inp == ""
         {
             inp = last_input.clone();
-            
         }
         last_input = inp.clone();
 

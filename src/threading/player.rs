@@ -1,8 +1,8 @@
-use std::sync::mpsc;
+use std::sync::mpsc::{Sender, Receiver};
 use super::general::{ThreadMessage};
 use std::collections::VecDeque;
 
-pub fn routine(commands: mpsc::Receiver<ThreadMessage>, teller: mpsc::Sender<ThreadMessage>)
+pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
 {
     let mut player = Player::new(commands, teller);
 
@@ -20,15 +20,10 @@ pub fn routine(commands: mpsc::Receiver<ThreadMessage>, teller: mpsc::Sender<Thr
         }
 
         player.teller.send
-        (
-            ThreadMessage::Printer
-            (
-                super::printer::PrintCommand::PlayerUpdate
-                (
-                    player.location
-                )
-            )
-        ).expect("player could not send location");
+            (ThreadMessage::Printer
+                (super::printer::PrintCommand::PlayerUpdate
+                    (player.location
+        ))).expect("player could not send location");
     }
 }
 
@@ -48,8 +43,8 @@ pub enum Move
 
 struct Player
 {
-    commands: mpsc::Receiver<ThreadMessage>,
-    teller: mpsc::Sender<ThreadMessage>,
+    commands: Receiver<ThreadMessage>,
+    teller: Sender<ThreadMessage>,
 
     location: (i32, i32),
     move_queue: VecDeque<Move>,
@@ -57,7 +52,7 @@ struct Player
 
 impl Player
 {
-    fn new(c: mpsc::Receiver<ThreadMessage>, t: mpsc::Sender<ThreadMessage>) -> Player
+    fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>) -> Player
     {
         Player
         {
@@ -105,15 +100,10 @@ impl Player
         else
         {
             self.teller.send
-            (
-                ThreadMessage::Printer
-                (
-                    super::printer::PrintCommand::MessageUpdate
-                    (
-                        String::from("Smack")
-                    )
-                )
-            ).expect("player could not send smack");
+                (ThreadMessage::Printer
+                    (super::printer::PrintCommand::MessageUpdate
+                        (String::from("Smack")
+            ))).expect("player could not send smack");
 
             let mut dists: Vec<i32> = Vec::with_capacity(collisions.len());
 

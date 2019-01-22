@@ -1,18 +1,30 @@
 extern crate term_size;
 
-use std::{sync::mpsc, collections::HashMap};
-use super::general::{ThreadMessage};
-use super::world::WorldElement;
+use std::
+{
+    sync::mpsc::
+    {
+        Receiver,
+    }, 
+    collections::HashMap
+};
+use super::
+{
+    general::{ThreadMessage}, 
+    world::WorldElement,
+};
 
 const APPEARANCE_PLAYER: char = '@';
 const APPEARANCE_WALL: char = '#';
 const APPEARANCE_FLOOR: char = '.';
 const APPEARANCE_UI_BORDER_BOTTOM: char = '_';
 
-pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
+pub fn routine(print_commands: Receiver<ThreadMessage>)
 {
     let mut screen = Screen
     {
+        commands: print_commands,
+
         data: vec!(),
         objects: ScreenObjects::new(),
         size: (0usize, 0usize)
@@ -20,23 +32,9 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 
     loop
     {
-        let command = print_commands.recv().unwrap();
-
         screen.update_screen_size();
 
-        match command
-        {
-            ThreadMessage::Printer(c) => 
-            match c
-            {
-                PrintCommand::Refresh => screen.objects.message_for_player = String::new(),
-                PrintCommand::PlayerUpdate(l) => screen.objects.player = l,
-                PrintCommand::WorldUpdate(w) => screen.objects.world = w,
-                PrintCommand::MessageUpdate(m) => screen.objects.message_for_player = m,
-            }
-
-            _ => panic!("Printer given unrecognizable command")
-        }
+        screen.parse_commands();        
 
         screen.update_screen();
 
@@ -55,6 +53,8 @@ pub enum PrintCommand
 
 struct Screen
 {
+    commands: Receiver<ThreadMessage>,
+
     data: Vec<char>,
     objects: ScreenObjects,
     size: (usize, usize)
@@ -82,6 +82,23 @@ impl ScreenObjects
 
 impl Screen
 {
+    fn parse_commands(&mut self)
+    {
+        match self.commands.recv().unwrap()
+        {
+            ThreadMessage::Printer(c) => 
+            match c
+            {
+                PrintCommand::Refresh => self.objects.message_for_player = String::new(),
+                PrintCommand::PlayerUpdate(l) => self.objects.player = l,
+                PrintCommand::WorldUpdate(w) => self.objects.world = w,
+                PrintCommand::MessageUpdate(m) => self.objects.message_for_player = m,
+            }
+
+            _ => panic!("Printer given unrecognizable command")
+        }
+    }
+
     fn place_char
     (
         &mut self,

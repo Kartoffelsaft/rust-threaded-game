@@ -4,42 +4,17 @@ use super::general::ThreadMessage;
 
 pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
 {
-    let mut world = WorldData::new();
+    let mut world = WorldData::new(commands, teller);
 
     loop
     {
-        match commands.recv().expect("world cannot recieve message")
-        {
-            ThreadMessage::World(c) =>
-            {
-                match c 
-                {
-                    WorldCommand::GenerateBuilding(b) => world.place_building(b.0, b.1),
-                    WorldCommand::CheckCollision(f, t, c) => 
-                    {
-                        let coll = world.check_collision(f, t);
-                        match c
-                        {
-                            WorldCollider::Player => 
-                            teller.send(ThreadMessage::Player(super::player::PlayerCommand::Collisions(coll))),
-                        };
-                    },
-                }
-            }
+        world.parse_commands();
 
-            _ => panic!("world could not enterperet message"),
-        }
-
-        teller.send
-        (
-            ThreadMessage::Printer
-            (
-                super::printer::PrintCommand::WorldUpdate
-                (
-                    world.elements.clone()
-                )
-            )
-        ).expect("world could not send world data");
+        world.teller.send
+            (ThreadMessage::Printer
+                (super::printer::PrintCommand::WorldUpdate
+                    (world.elements.clone()
+        ))).expect("world could not send world data");
     }
 }
 
@@ -56,6 +31,9 @@ pub enum WorldCollider
 
 struct WorldData
 {
+    commands: Receiver<ThreadMessage>,
+    teller: Sender<ThreadMessage>,
+
     elements: HashMap<(i32, i32), WorldElement>,
 }
 
@@ -68,11 +46,31 @@ pub enum WorldElement
 
 impl WorldData
 {
-    pub fn new() -> WorldData
+    pub fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>) -> WorldData
     {
         WorldData
         {
+            commands: c,
+            teller: t,
+
             elements: HashMap::new(),
+        }
+    }
+
+    fn parse_commands(&mut self)
+    {
+        match self.commands.recv().expect("world cannot recieve message")
+        {
+            ThreadMessage::World(c) =>
+            {
+                match c 
+                {
+                    WorldCommand::GenerateBuilding(b) => self.place_building(b.0, b.1),
+                    WorldCommand::CheckCollision(f, t, c) => self.route_collision_info(f, t, c),
+                }
+            }
+
+            _ => panic!("world could not enterperet message"),
         }
     }
 
@@ -97,6 +95,19 @@ impl WorldData
     fn place_world_element(&mut self, loc: (i32, i32), element: WorldElement)
     {
         self.elements.insert(loc, element);
+    }
+
+    fn route_collision_info(&mut self, from: (i32, i32), to: (i32, i32), collider: WorldCollider)
+    {
+        let coll = self.check_collision(from, to);
+        match collider
+        {
+            WorldCollider::Player => 
+            self.teller.send
+                (ThreadMessage::Player
+                    (super::player::PlayerCommand::Collisions(coll)
+            )).expect("world could not send collisions"),
+        };
     }
 
     fn check_collision(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)>
