@@ -15,8 +15,19 @@ pub fn routine(output: mpsc::Sender<ThreadMessage>)
         buffer.read_line(&mut inp).unwrap();
         inp = inp.trim().to_owned();
 
+        output.send
+        (
+            ThreadMessage::Printer
+            (
+                super::printer::PrintCommand::Refresh
+            )
+        ).expect("printer could not refresh screen");
+
         if inp == ""
-        {inp = last_input.clone();}
+        {
+            inp = last_input.clone();
+            
+        }
         last_input = inp.clone();
 
         for msg in parse_input(inp)

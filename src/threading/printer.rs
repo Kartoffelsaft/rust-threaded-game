@@ -29,9 +29,10 @@ pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
             ThreadMessage::Printer(c) => 
             match c
             {
-                PrintCommand::Refresh => (),
+                PrintCommand::Refresh => screen.objects.message_for_player = String::new(),
                 PrintCommand::PlayerUpdate(l) => screen.objects.player = l,
                 PrintCommand::WorldUpdate(w) => screen.objects.world = w,
+                PrintCommand::MessageUpdate(m) => screen.objects.message_for_player = m,
             }
 
             _ => panic!("Printer given unrecognizable command")
@@ -48,7 +49,8 @@ pub enum PrintCommand
 {
     Refresh,
     PlayerUpdate((i32, i32)),
-    WorldUpdate(HashMap<(i32, i32), WorldElement>)
+    WorldUpdate(HashMap<(i32, i32), WorldElement>),
+    MessageUpdate(String),
 }
 
 struct Screen

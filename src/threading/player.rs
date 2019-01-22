@@ -104,6 +104,17 @@ impl Player
         }
         else
         {
+            self.teller.send
+            (
+                ThreadMessage::Printer
+                (
+                    super::printer::PrintCommand::MessageUpdate
+                    (
+                        String::from("Smack")
+                    )
+                )
+            ).expect("player could not send smack");
+
             let mut dists: Vec<i32> = Vec::with_capacity(collisions.len());
 
             for collision in collisions
