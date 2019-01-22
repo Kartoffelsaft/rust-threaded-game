@@ -7,6 +7,7 @@ use super::world::WorldElement;
 const APPEARANCE_PLAYER: char = '@';
 const APPEARANCE_WALL: char = '#';
 const APPEARANCE_FLOOR: char = '.';
+const APPEARANCE_UI_BORDER_BOTTOM: char = '_';
 
 pub fn routine(print_commands: mpsc::Receiver<super::general::ThreadMessage>)
 {
@@ -61,6 +62,7 @@ struct ScreenObjects
 {
     player: (i32, i32),
     world: HashMap<(i32, i32), WorldElement>,
+    message_for_player: String
 }
 
 impl ScreenObjects
@@ -71,6 +73,7 @@ impl ScreenObjects
         {
             player: (0, 0),
             world: HashMap::new(),
+            message_for_player: String::new(),
         }
     }
 }
@@ -85,9 +88,7 @@ impl Screen
     )
     {
         if loc.0 < self.size.0 &&
-        loc.0 > 0 &&
-        loc.1 < self.size.1 &&
-        loc.1 > 0
+        loc.1 < self.size.1
         {
             if let Some(screen_loc) = self.data.get_mut(loc.1*self.size.0 + loc.0)
             {*screen_loc = character;}
@@ -97,7 +98,7 @@ impl Screen
     fn place_string
     (
         &mut self,
-        string: String,
+        string: &str,
         loc: &(usize, usize),
     )
     {
@@ -131,6 +132,14 @@ impl Screen
             &(self.objects.player.0 as usize,
             self.objects.player.1 as usize)
         );
+
+        for i in 0..self.size.0
+        {
+            self.place_char(APPEARANCE_UI_BORDER_BOTTOM, &(i, self.size.1 - 2));
+        }
+
+        let msg = self.objects.message_for_player.clone();
+        self.place_string(&msg, &(0, self.size.1 - 1));
     }
 
     fn update_screen_size(&mut self)
