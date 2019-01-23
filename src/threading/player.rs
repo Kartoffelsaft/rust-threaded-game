@@ -142,7 +142,7 @@ impl Player
         };
     }
 
-    fn move_iter(&mut self, vertical: bool, positive: bool)
+    fn _move_iter(&mut self, vertical: bool, positive: bool)
     {
         if vertical
         {

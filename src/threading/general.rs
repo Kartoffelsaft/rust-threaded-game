@@ -41,9 +41,8 @@ impl EveryThreadInstance
             ThreadMetadata
             {
                 tell: None,
-                finished: None,
 
-                handle: thread_input,
+                _handle: thread_input,
             }
         );
 
@@ -56,9 +55,8 @@ impl EveryThreadInstance
             ThreadMetadata
             {
                 tell: Some(tell_printer_s),
-                finished: None,
 
-                handle: thread_printer,
+                _handle: thread_printer,
             }
         );
 
@@ -72,9 +70,8 @@ impl EveryThreadInstance
             ThreadMetadata
             {
                 tell: Some(tell_player_s),
-                finished: None,
 
-                handle: thread_player,
+                _handle: thread_player,
             }
         );
 
@@ -88,9 +85,8 @@ impl EveryThreadInstance
             ThreadMetadata
             {
                 tell: Some(tell_world_s),
-                finished: None,
                 
-                handle: thread_world,
+                _handle: thread_world,
             }
         );
 
@@ -134,13 +130,9 @@ struct ThreadMetadata
 {
     tell: Option//tell thread
         <Sender
-            <ThreadMessage>>,                  
-
-    finished: Option//thread finish loop
-        <Receiver
-            <bool>>,
+            <ThreadMessage>>,
     
-    handle: thread::JoinHandle<()>,
+    _handle: thread::JoinHandle<()>,
 }
 
 pub enum ThreadMessage
