@@ -17,6 +17,7 @@ use super::
 const APPEARANCE_PLAYER: char = '@';
 const APPEARANCE_WALL: char = '#';
 const APPEARANCE_FLOOR: char = '.';
+const APPEARANCE_DOOR: char = ']';
 const APPEARANCE_UI_BORDER_BOTTOM: char = '_';
 
 pub fn routine(print_commands: Receiver<ThreadMessage>)
@@ -140,6 +141,7 @@ impl Screen
             {
                 WorldElement::Wall => APPEARANCE_WALL,
                 WorldElement::Floor => APPEARANCE_FLOOR,
+                WorldElement::Door => APPEARANCE_DOOR,
             };
 
             self.place_char(appearance, &(loc.0 as usize, loc.1 as usize));

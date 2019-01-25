@@ -1,6 +1,11 @@
 use std::sync::mpsc::{Sender, Receiver};
 use std::collections::HashMap;
 use super::general::ThreadMessage;
+use rand::prelude::
+{
+    thread_rng,
+    Rng,
+};
 
 pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
 {
@@ -42,6 +47,7 @@ pub enum WorldElement
 {
     Wall,
     Floor,
+    Door,
 }
 
 impl WorldData
@@ -90,6 +96,35 @@ impl WorldData
                 self.place_world_element((loc.0 + i as i32, loc.1 + j as i32), WorldElement::Floor);
             }
         }}
+
+        let mut rng = thread_rng();
+
+        let door_side = rng.gen::<u8>() % 4;
+        match door_side
+        {
+            0 => //top
+            {
+                let door_shift = rng.gen::<u16>() % (size.0 - 1) + 1;
+                self.place_world_element((loc.0 + door_shift as i32, loc.1), WorldElement::Door);
+            },
+            1 => //left
+            {
+                let door_shift = rng.gen::<u16>() % (size.1 - 1) + 1;
+                self.place_world_element((loc.0, loc.1 + door_shift as i32), WorldElement::Door);
+            },
+            2 => //bottom
+            {
+                let door_shift = rng.gen::<u16>() % (size.0 - 1) + 1;
+                self.place_world_element((loc.0 + door_shift as i32, loc.1 + size.1 as i32), WorldElement::Door)
+            },
+            3 => //right
+            {
+                let door_shift = rng.gen::<u16>() % (size.1 - 1) + 1;
+                self.place_world_element((loc.0 + size.0 as i32, loc.1 + door_shift as i32), WorldElement::Door)
+            },
+
+            _ => assert!(false),
+        }
     }
 
     fn place_world_element(&mut self, loc: (i32, i32), element: WorldElement)
