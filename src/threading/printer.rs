@@ -12,12 +12,17 @@ use super::
 {
     general::{ThreadMessage}, 
     world::WorldElement,
+    entities::entity::EntityType,
 };
 
 const APPEARANCE_PLAYER: char = '@';
+
 const APPEARANCE_WALL: char = '#';
 const APPEARANCE_FLOOR: char = '.';
 const APPEARANCE_DOOR: char = ']';
+
+const APPEARANCE_ENTITY_COW: char = 'C';
+
 const APPEARANCE_UI_BORDER_BOTTOM: char = '_';
 
 pub fn routine(print_commands: Receiver<ThreadMessage>)
@@ -49,6 +54,7 @@ pub enum PrintCommand
     Refresh,
     PlayerUpdate((i32, i32)),
     WorldUpdate(HashMap<(i32, i32), WorldElement>),
+    EntitiesUpdate(Vec<(EntityType, (i32, i32))>),
     MessageUpdate(String),
 }
 
@@ -65,6 +71,7 @@ struct ScreenObjects
 {
     player: (i32, i32),
     world: HashMap<(i32, i32), WorldElement>,
+    entities: Vec<(EntityType, (i32, i32))>,
     message_for_player: String
 }
 
@@ -76,6 +83,7 @@ impl ScreenObjects
         {
             player: (0, 0),
             world: HashMap::new(),
+            entities: Vec::new(),
             message_for_player: String::new(),
         }
     }
@@ -93,6 +101,7 @@ impl Screen
                 PrintCommand::Refresh => self.objects.message_for_player = String::new(),
                 PrintCommand::PlayerUpdate(l) => self.objects.player = l,
                 PrintCommand::WorldUpdate(w) => self.objects.world = w,
+                PrintCommand::EntitiesUpdate(e) => self.objects.entities = e,
                 PrintCommand::MessageUpdate(m) => self.objects.message_for_player = m,
             }
 
@@ -145,6 +154,14 @@ impl Screen
             };
 
             self.place_char(appearance, &(loc.0 as usize, loc.1 as usize));
+        }
+
+        for (entity, loc) in &self.objects.entities.clone()
+        {
+            match entity
+            {
+                EntityType::Cow => self.place_char(APPEARANCE_ENTITY_COW, &(loc.0 as usize, loc.1 as usize)),
+            };
         }
 
         self.place_char

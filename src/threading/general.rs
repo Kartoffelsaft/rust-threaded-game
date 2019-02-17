@@ -90,6 +90,21 @@ impl EveryThreadInstance
             }
         );
 
+        let (tell_entities_s, tell_entities_r) = channel();
+        let read_entities_s = thread_output_s.clone();
+        let thread_entities = thread::spawn(move || { super::entities::routine(tell_entities_r, read_entities_s) });
+        new.interface.insert
+        (
+            "entities",
+
+            ThreadMetadata
+            {
+                tell: Some(tell_entities_s),
+
+                _handle: thread_entities,
+            }
+        );
+
         new
     }
 
@@ -108,6 +123,7 @@ impl EveryThreadInstance
                     ThreadMessage::Printer(_) => "printer",
                     ThreadMessage::Player(_) => "player",
                     ThreadMessage::World(_) => "world",
+                    ThreadMessage::Entities(_) => "entities"
                 };
 
                 self
@@ -140,4 +156,5 @@ pub enum ThreadMessage
     Printer(super::printer::PrintCommand),
     Player(super::player::PlayerCommand),
     World(super::world::WorldCommand),
+    Entities(super::entities::EntitesCommand),
 }

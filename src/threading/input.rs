@@ -85,6 +85,9 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
                     "t" => return_commands.push
                     (World(super::world::WorldCommand::GenerateBuilding(((5, 3), (4, 4))))),
 
+                    "e" => return_commands.push
+                    (Entities(super::entities::EntitesCommand::Spawn)),
+
                     _ => (),
                 }
 
