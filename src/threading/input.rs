@@ -19,9 +19,10 @@ use super::
     
     player::
     {
-        PlayerCommand::*, 
-        Move::*
-    }
+        PlayerCommand::*,
+    },
+
+    collision_handler::movement::Direction::*,
 };
 
 pub fn routine(output: Sender<ThreadMessage>)

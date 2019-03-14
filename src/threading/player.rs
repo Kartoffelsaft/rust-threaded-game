@@ -1,10 +1,10 @@
 use std::sync::mpsc::{Sender, Receiver};
 use super::general::{ThreadMessage};
-use std::collections::VecDeque;
+use super::collision_handler::{ptr::{CollDataPtr}, movement::{Direction, Move}};
 
-pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
+pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>, collider: CollDataPtr)
 {
-    let mut player = Player::new(commands, teller);
+    let mut player = Player::new(commands, teller, collider);
 
     loop
     {
@@ -12,8 +12,11 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
         {
             ThreadMessage::Player(c) => match c
             {
-                PlayerCommand::Move(m) => player.push_move(m),
-                PlayerCommand::Collisions(c) => player.move_execute_physics(c),
+                PlayerCommand::Move(m) => 
+                {
+                    player.move_direction(m);
+                    player.collider.set_player(player.location);
+                },
             }
 
             _ => panic!("player given unrecognizable command")          
@@ -29,41 +32,33 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
 
 pub enum PlayerCommand
 {
-    Move(Move),
-    Collisions(Vec<(i32, i32)>),
-}
-
-pub enum Move
-{
-    Up(i16),
-    Down(i16),
-    Left(i16),
-    Right(i16),
+    Move(Direction),
 }
 
 struct Player
 {
     commands: Receiver<ThreadMessage>,
     teller: Sender<ThreadMessage>,
+    collider: CollDataPtr,
 
     location: (i32, i32),
-    move_queue: VecDeque<Move>,
 }
 
 impl Player
 {
-    fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>) -> Player
+    fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>, coll: CollDataPtr) -> Player
     {
         Player
         {
             commands: c,
             teller: t,
+            collider: coll,
 
             location: (1, 1),
-            move_queue: VecDeque::new(),
         }
     }
 
+    /*
     fn push_move(&mut self, move_command: Move)
     {
         let move_to = match move_command
@@ -159,4 +154,16 @@ impl Player
             {self.location.0 -= 1;}
         }
     }
+    */
+}
+
+impl Move for Player
+{
+    fn get_loc(&self) -> &(i32, i32)
+    {&self.location}
+    fn get_loc_mut(&mut self) -> &mut (i32, i32)
+    {&mut self.location}
+
+    fn get_collision_data_ptr(&self) -> CollDataPtr
+    {self.collider.clone()}
 }

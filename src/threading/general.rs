@@ -8,7 +8,7 @@ use std::
             Receiver,
             Sender,
             channel,
-        }
+        },
     }, 
     collections::HashMap
 };
@@ -31,6 +31,7 @@ impl EveryThreadInstance
     {
         let (thread_output_s, thread_output_r) = channel();
         let mut new = EveryThreadInstance{interface: HashMap::new(), thread_output: thread_output_r};
+        let collision_data_ptr = super::collision_handler::ptr::CollDataPtr::new();
 
         let read_input_s = thread_output_s.clone();
         let thread_input = thread::spawn(move || { super::input::routine(read_input_s); });
@@ -62,7 +63,8 @@ impl EveryThreadInstance
 
         let (tell_player_s, tell_player_r) = channel();
         let read_player_s = thread_output_s.clone();
-        let thread_player = thread::spawn(move || { super::player::routine(tell_player_r, read_player_s) });
+        let collision_player = super::collision_handler::ptr::CollDataPtr::from(&collision_data_ptr);
+        let thread_player = thread::spawn(move || { super::player::routine(tell_player_r, read_player_s, collision_player) });
         new.interface.insert
         (
             "player", 
@@ -77,7 +79,8 @@ impl EveryThreadInstance
 
         let (tell_world_s, tell_world_r) = channel();
         let read_world_s = thread_output_s.clone();
-        let thread_world = thread::spawn(move || { super::world::routine(tell_world_r, read_world_s) });
+        let collision_world = super::collision_handler::ptr::CollDataPtr::from(&collision_data_ptr);
+        let thread_world = thread::spawn(move || { super::world::routine(tell_world_r, read_world_s, collision_world) });
         new.interface.insert
         (
             "world", 

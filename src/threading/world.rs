@@ -1,15 +1,16 @@
 use std::sync::mpsc::{Sender, Receiver};
 use std::collections::HashMap;
-use super::general::ThreadMessage;
+use super::general::{ThreadMessage};
+use super::collision_handler::ptr::CollDataPtr;
 use rand::prelude::
 {
     thread_rng,
     Rng,
 };
 
-pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
+pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>, collider: CollDataPtr)
 {
-    let mut world = WorldData::new(commands, teller);
+    let mut world = WorldData::new(commands, teller, collider);
 
     loop
     {
@@ -26,18 +27,18 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
 pub enum WorldCommand
 {
     GenerateBuilding(((i32, i32), (u16, u16))),
-    CheckCollision((i32, i32), (i32, i32), WorldCollider)
 }
 
-pub enum WorldCollider
+/*pub enum WorldCollider
 {
     Player,
-}
+}*/
 
 struct WorldData
 {
     commands: Receiver<ThreadMessage>,
     teller: Sender<ThreadMessage>,
+    collider: CollDataPtr,
 
     elements: HashMap<(i32, i32), WorldElement>,
 }
@@ -52,12 +53,13 @@ pub enum WorldElement
 
 impl WorldData
 {
-    pub fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>) -> WorldData
+    pub fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>, coll: CollDataPtr) -> WorldData
     {
         WorldData
         {
             commands: c,
             teller: t,
+            collider: coll,
 
             elements: HashMap::new(),
         }
@@ -72,7 +74,6 @@ impl WorldData
                 match c 
                 {
                     WorldCommand::GenerateBuilding(b) => self.place_building(b.0, b.1),
-                    WorldCommand::CheckCollision(f, t, c) => self.route_collision_info(f, t, c),
                 }
             }
 
@@ -124,7 +125,8 @@ impl WorldData
             },
 
             _ => assert!(false),
-        }
+        };
+        self.update_world_collisions();
     }
 
     fn place_world_element(&mut self, loc: (i32, i32), element: WorldElement)
@@ -132,6 +134,24 @@ impl WorldData
         self.elements.insert(loc, element);
     }
 
+    fn update_world_collisions(&self)
+    {
+        let mut collision_objects = Vec::with_capacity(self.elements.len());
+
+        for (loc, elem) in &self.elements
+        {
+            match elem
+            {
+                WorldElement::Wall => collision_objects.push(loc.clone()),
+
+                _ => (),
+            }
+        }
+
+        self.collider.set_world(collision_objects);
+    }
+
+    /*
     fn route_collision_info(&mut self, from: (i32, i32), to: (i32, i32), collider: WorldCollider)
     {
         let coll = self.check_collision(from, to);
@@ -144,7 +164,9 @@ impl WorldData
             )).expect("world could not send collisions"),
         };
     }
+    */
 
+    /*
     fn check_collision(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)>
     {
         let mut collisions: Vec<(i32, i32)> = vec!();
@@ -194,4 +216,5 @@ impl WorldData
 
         collisions
     }
+    */
 }
