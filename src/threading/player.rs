@@ -1,6 +1,6 @@
 use std::sync::mpsc::{Sender, Receiver};
 use super::general::{ThreadMessage};
-use super::collision_handler::{ptr::{CollDataPtr}, movement::{Direction, Move}};
+use super::collision_handler::{ptr::{CollDataPtr}, movement::{Direction, Moveable}};
 
 pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>, collider: CollDataPtr)
 {
@@ -157,7 +157,7 @@ impl Player
     */
 }
 
-impl Move for Player
+impl Moveable for Player
 {
     fn get_loc(&self) -> &(i32, i32)
     {&self.location}

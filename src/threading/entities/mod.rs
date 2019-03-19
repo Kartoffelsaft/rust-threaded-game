@@ -15,14 +15,18 @@ use super::
     general::
     {
         ThreadMessage,
-    }
+    },
+    collision_handler::ptr::CollDataPtr,
 };
+
+pub mod entity;
+mod types;
 
 const _ENTITY_TICK_MILLIS: usize = 10;
 
-pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>)
+pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>, collider: CollDataPtr)
 {
-    let mut metaentity = Entities::new(commands, teller);
+    let mut metaentity = Entities::new(commands, teller, collider);
 
     loop
     {
@@ -42,17 +46,21 @@ struct Entities
     commands: Receiver<ThreadMessage>,
     teller: Sender<ThreadMessage>,
 
+    collider: CollDataPtr,
+
     ents: Vec<entity::EntityCommunicator>,
 }
 
 impl Entities
 {
-    pub fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>) -> Entities
+    pub fn new(c: Receiver<ThreadMessage>, t: Sender<ThreadMessage>, coll: CollDataPtr) -> Entities
     {
         Entities
         {
             commands: c,
             teller: t,
+
+            collider: coll,
 
             ents: vec!(),
         }
@@ -61,7 +69,7 @@ impl Entities
     pub fn new_entity(&mut self)
     {
         self.ents.push
-            (entity::EntityCommunicator::new());
+            (entity::EntityCommunicator::new(&self.collider));
     }
 
     pub fn command_entities_to_update(&mut self)
@@ -101,7 +109,6 @@ impl Entities
     }
 }
 
-pub mod entity;
 
 
 

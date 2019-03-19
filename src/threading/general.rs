@@ -95,7 +95,8 @@ impl EveryThreadInstance
 
         let (tell_entities_s, tell_entities_r) = channel();
         let read_entities_s = thread_output_s.clone();
-        let thread_entities = thread::spawn(move || { super::entities::routine(tell_entities_r, read_entities_s) });
+        let collision_entities = super::collision_handler::ptr::CollDataPtr::from(&collision_data_ptr);
+        let thread_entities = thread::spawn(move || { super::entities::routine(tell_entities_r, read_entities_s, collision_entities) });
         new.interface.insert
         (
             "entities",

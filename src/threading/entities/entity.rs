@@ -17,6 +17,18 @@ use std::
     },
 };
 
+use super::
+{
+    types::
+    {
+        cow,
+    },
+    super::
+    {
+        collision_handler::ptr::CollDataPtr,
+    }
+};
+
 pub struct EntityCommunicator
 {
     thread: JoinHandle<()>,
@@ -28,10 +40,10 @@ pub struct EntityCommunicator
 
 impl EntityCommunicator
 {
-    pub fn new() -> EntityCommunicator
+    pub fn new(ptr: &CollDataPtr) -> EntityCommunicator
     {
         let (communicator_teller, entity_receiver) = channel();
-        let new_entity_inst = Arc::new(Mutex::new(Entity::new()));
+        let new_entity_inst = Arc::new(Mutex::new(cow::Cow::new(ptr)));
         let new_entity_inst_cpy = new_entity_inst.clone();
         EntityCommunicator
         {
@@ -70,32 +82,18 @@ fn parse_commands(commands: &Receiver<ToEntityCommand>, entity_inst: &mut Arc<Mu
     }
 }
 
-pub struct Entity
-{
-    loc: (i32, i32),
-    e_type: EntityType,
-}
-
 #[derive(Clone)]
 pub enum EntityType
 {
     Cow,
 }
 
-impl Entity
+pub trait Entity: super::super::collision_handler::movement::Moveable
 {
-    pub fn new() -> Entity
-    {
-        Entity
-        {
-            loc: (10, 10),
-            e_type: EntityType::Cow,
-        }
-    }
+    fn update(&mut self);
 
-    pub fn update(&mut self)
-    {}
+    fn get_type(&self) -> EntityType;
 
-    pub fn print_data(&self) -> (EntityType, (i32, i32))
-    {(self.e_type.clone(), self.loc.clone())}
+    fn print_data(&self) -> (EntityType, (i32, i32))
+    {(self.get_type(), self.get_loc().clone())}
 }

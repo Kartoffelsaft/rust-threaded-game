@@ -6,7 +6,7 @@ pub enum Direction
     Right(i16),
 }
 
-pub trait Move
+pub trait Moveable
 {
     fn get_loc(&self) -> &(i32, i32);
     fn get_loc_mut(&mut self) -> &mut (i32, i32);
