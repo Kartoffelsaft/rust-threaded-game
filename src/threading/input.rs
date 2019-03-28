@@ -89,7 +89,16 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
                     "e" => return_commands.push
                     (Entities(super::entities::EntitesCommand::Spawn)),
 
-                    _ => (),
+                    _ => return_commands.push
+                    (
+                        Printer
+                        (
+                            super::printer::PrintCommand::MessageUpdate
+                            (
+                                format!("warning: \"{}\" could not be understood", word)
+                            )
+                        )
+                    ), 
                 }
 
                 repeat_command_times = 1;
