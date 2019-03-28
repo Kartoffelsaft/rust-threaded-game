@@ -7,8 +7,13 @@ use std::
             Receiver,
             Sender,
             channel,
+
+            RecvTimeoutError,
         },
     },
+
+    time::Duration,
+    ops::Deref,
 };
 use super::
 {
@@ -22,7 +27,7 @@ use super::
 pub mod entity;
 mod types;
 
-const _ENTITY_TICK_MILLIS: usize = 10;
+const ENTITY_TICK_MILLIS: usize = 10;
 
 pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>, collider: CollDataPtr)
 {
@@ -31,6 +36,7 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>,
     loop
     {
         metaentity.printer_update();
+        metaentity.collider_update();
 
         metaentity.parse_commands();
     }
@@ -82,13 +88,24 @@ impl Entities
 
     pub fn parse_commands(&mut self)
     {
-        match self.commands.recv().expect("metaentity could not get commands")
+        match self.commands.recv_timeout(Duration::from_millis(ENTITY_TICK_MILLIS as u64))
         {
-            ThreadMessage::Entities(ec) => match ec
+            Ok(c) => match c
             {
-                EntitesCommand::Spawn => self.new_entity(),
-            },
-            _ => panic!("metaentity given unrecognizable command"),
+                ThreadMessage::Entities(ec) => match ec
+                {
+                    EntitesCommand::Spawn => self.new_entity(),
+                },
+
+                _ => panic!("metaentity given unrecognizable command"),
+            }
+
+            Err(e) => match e
+            {
+                RecvTimeoutError::Timeout => (),
+
+                RecvTimeoutError::Disconnected => panic!("metaentity recv disconnected"),
+            }
         };
     }
 
@@ -106,6 +123,27 @@ impl Entities
                 (super::printer::PrintCommand::EntitiesUpdate(ent_updates_buffer)
             )
         ).expect("metaentity could not send print information");
+    }
+
+    fn collider_update(&mut self)
+    {
+        let mut entities: Vec<(i32, i32)> = vec!();
+        
+        for ent in &self.ents
+        {
+            entities.push
+            (
+                ent
+                    .entity_inst
+                    .lock()
+                    .expect("metaentity could not lock entity")
+                    .deref()
+                    .get_loc()
+                    .clone()
+            );
+        }
+
+        self.collider.set_entities(entities);
     }
 }
 
