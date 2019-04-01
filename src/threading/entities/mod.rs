@@ -35,8 +35,8 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>,
 
     loop
     {
-        metaentity.printer_update();
-        metaentity.collider_update();
+        if metaentity.collider_update()
+        {metaentity.printer_update();}
 
         metaentity.parse_commands();
     }
@@ -55,6 +55,7 @@ struct Entities
     collider: CollDataPtr,
 
     ents: Vec<entity::EntityCommunicator>,
+    prev_ents_coll: Vec<(i32, i32)>,
 }
 
 impl Entities
@@ -69,6 +70,7 @@ impl Entities
             collider: coll,
 
             ents: vec!(),
+            prev_ents_coll: vec!(),
         }
     }
 
@@ -125,7 +127,7 @@ impl Entities
         ).expect("metaentity could not send print information");
     }
 
-    fn collider_update(&mut self)
+    fn collider_update(&mut self) -> bool
     {
         let mut entities: Vec<(i32, i32)> = vec!();
         
@@ -143,7 +145,27 @@ impl Entities
             );
         }
 
-        self.collider.set_entities(entities);
+        let mut collision_change = self.prev_ents_coll.len() != entities.len();
+        
+        if !collision_change
+        {
+            for (new_ent, prev_ent) in entities.iter().zip(self.prev_ents_coll.iter())
+            {
+                if new_ent != prev_ent
+                {
+                    collision_change = true;
+                    break;
+                }
+            }
+        }
+
+        if collision_change
+        {
+            self.prev_ents_coll = entities.clone();
+            self.collider.set_entities(entities);
+        }
+
+        collision_change
     }
 }
 
