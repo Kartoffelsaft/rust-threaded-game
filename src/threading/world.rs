@@ -77,6 +77,8 @@ impl WorldData
                 }
             }
 
+            ThreadMessage::BroadCast(_) => (),
+
             _ => panic!("world could not enterperet message"),
         }
     }

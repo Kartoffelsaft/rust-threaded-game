@@ -52,7 +52,7 @@ impl EntityCommunicator
                 routine(entity_receiver, new_entity_inst_cpy)
             }),
             teller: communicator_teller,
-            entity_inst: new_entity_inst.clone(),
+            entity_inst: new_entity_inst
         }
     }
 }

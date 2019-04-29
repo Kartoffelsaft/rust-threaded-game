@@ -12,7 +12,8 @@ use super::
     general::
     {
         ThreadMessage, 
-        ThreadMessage::*
+        ThreadMessage::*,
+        BroadCastMessage,
     }, 
     
     printer::PrintCommand, 
@@ -88,6 +89,9 @@ fn parse_input(input: String) -> Vec<ThreadMessage>
 
                     "e" => return_commands.push
                     (Entities(super::entities::EntitesCommand::Spawn)),
+
+                    "step" => return_commands.push
+                    (BroadCast(BroadCastMessage::Gametick)),
 
                     _ => return_commands.push
                     (

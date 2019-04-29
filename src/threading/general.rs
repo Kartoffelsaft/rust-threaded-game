@@ -122,26 +122,44 @@ impl EveryThreadInstance
         {
             Result::Ok(message) => 
             {
-                let reciever = match message
+                if let ThreadMessage::BroadCast(broadcast_message) = message
+                {self.broadcast(broadcast_message);}
+                else
                 {
-                    ThreadMessage::Printer(_) => "printer",
-                    ThreadMessage::Player(_) => "player",
-                    ThreadMessage::World(_) => "world",
-                    ThreadMessage::Entities(_) => "entities"
-                };
+                    let reciever = match message
+                    {
+                        ThreadMessage::Printer(_) => "printer",
+                        ThreadMessage::Player(_) => "player",
+                        ThreadMessage::World(_) => "world",
+                        ThreadMessage::Entities(_) => "entities",
 
-                self
-                    .interface
-                    .get(reciever)
-                    .unwrap()
-                    .tell
-                    .as_ref()
-                    .expect("thread does not have input")
-                    .send(message)
-                    .expect("send did not work");
+                        ThreadMessage::BroadCast(_) => panic!("broadcast fell into else statement"),
+                    };
+
+                    self
+                        .interface
+                        .get(reciever)
+                        .unwrap()
+                        .tell
+                        .as_ref()
+                        .expect("thread does not have input")
+                        .send(message)
+                        .expect("send did not work");
+                }
             }
 
             Result::Err(e) => panic!("try recv failed: {}", e)
+        }
+    }
+
+    fn broadcast(&mut self, message: BroadCastMessage)
+    {
+        for some_reciever in self.interface.values()
+        {
+            if let Some(reciever) = &some_reciever.tell
+            {
+                reciever.send(ThreadMessage::BroadCast(message.clone()));
+            }
         }
     }
 }
@@ -161,4 +179,12 @@ pub enum ThreadMessage
     Player(super::player::PlayerCommand),
     World(super::world::WorldCommand),
     Entities(super::entities::EntitesCommand),
+
+    BroadCast(BroadCastMessage),
+}
+
+#[derive(Clone)]
+pub enum BroadCastMessage
+{
+    Gametick,
 }

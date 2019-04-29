@@ -105,6 +105,8 @@ impl Screen
                 PrintCommand::MessageUpdate(m) => self.objects.message_for_player = m,
             }
 
+            ThreadMessage::BroadCast(_) => (),
+
             _ => panic!("Printer given unrecognizable command")
         }
     }

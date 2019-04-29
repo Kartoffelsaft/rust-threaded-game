@@ -19,6 +19,8 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>,
                 },
             }
 
+            ThreadMessage::BroadCast(_) => (),
+
             _ => panic!("player given unrecognizable command")          
         }
 

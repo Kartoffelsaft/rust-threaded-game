@@ -1,10 +1,16 @@
+extern crate rand;
+
 use super::super::
 {
     super::
     {
         collision_handler::
         {
-            movement::Moveable,
+            movement::
+            {
+                Moveable,
+                Direction,
+            },
             ptr::CollDataPtr,
         },
     },
@@ -16,11 +22,19 @@ use super::super::
     },
 };
 
+use rand::
+{
+    RngCore,
+    prelude::SmallRng,
+    FromEntropy,
+};
+
 pub struct Cow
 {
     loc: (i32, i32),
 
     collider: CollDataPtr,
+    rng: SmallRng,
 }
 
 impl Cow
@@ -30,7 +44,9 @@ impl Cow
         Cow
         {
             loc: (12, 8),
+
             collider: ptr.clone(),
+            rng: SmallRng::from_entropy(),
         }
     }
 }
@@ -50,7 +66,21 @@ impl Moveable for Cow
 impl Entity for Cow
 {
     fn update(&mut self)
-    {}
+    {
+        let rand = self.rng.next_u32() % 4;
+
+        let dir = match rand
+        {
+            0 => Direction::Up(1),
+            1 => Direction::Down(1),
+            2 => Direction::Left(1),
+            3 => Direction::Right(1),
+
+            _ => panic!("rng value generated beyond expected"),
+        };
+
+        self.move_direction(dir);
+    }
 
     fn get_type(&self) -> EntityType
     {EntityType::Cow}

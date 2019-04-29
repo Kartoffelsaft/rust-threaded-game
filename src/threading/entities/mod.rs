@@ -20,6 +20,7 @@ use super::
     general::
     {
         ThreadMessage,
+        BroadCastMessage,
     },
     collision_handler::ptr::CollDataPtr,
 };
@@ -98,6 +99,11 @@ impl Entities
                 {
                     EntitesCommand::Spawn => self.new_entity(),
                 },
+
+                ThreadMessage::BroadCast(bc) => match bc
+                {
+                    BroadCastMessage::Gametick => self.command_entities_to_update()
+                }
 
                 _ => panic!("metaentity given unrecognizable command"),
             }
