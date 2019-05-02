@@ -176,6 +176,7 @@ impl Screen
         for i in 0..self.size.0
         {
             self.place_char(APPEARANCE_UI_BORDER_BOTTOM, &(i, self.size.1 - 2));
+            self.place_char(' ', &(i, self.size.1 - 1));
         }
 
         let msg = self.objects.message_for_player.clone();
