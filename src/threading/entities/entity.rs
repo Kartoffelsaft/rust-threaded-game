@@ -82,7 +82,7 @@ fn parse_commands(commands: &Receiver<ToEntityCommand>, entity_inst: &mut Arc<Mu
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum EntityType
 {
     Cow,

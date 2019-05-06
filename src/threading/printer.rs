@@ -6,7 +6,9 @@ use std::
     {
         Receiver,
     }, 
-    collections::HashMap
+    collections::HashMap,
+    thread::sleep,
+    time::Duration,
 };
 use super::
 {
@@ -14,6 +16,8 @@ use super::
     world::WorldElement,
     entities::entity::EntityType,
 };
+
+const SCREEN_TICK_MILLIS: u64 = 80;
 
 const APPEARANCE_PLAYER: char = '@';
 
@@ -40,15 +44,16 @@ pub fn routine(print_commands: Receiver<ThreadMessage>)
     {
         screen.update_screen_size();
 
-        screen.parse_commands();        
-
-        screen.update_screen();
-
-        let output: String = screen.data.iter().collect();
-        print!("{}\n", output);
+        if screen.parse_commands()        
+        {
+            screen.update_screen();
+            let output: String = screen.data.iter().collect();
+            print!("{}\n", output);
+        }
     }
 }
 
+#[derive(Debug)]
 pub enum PrintCommand
 {
     Refresh,
@@ -91,24 +96,36 @@ impl ScreenObjects
 
 impl Screen
 {
-    fn parse_commands(&mut self)
+    fn parse_commands(&mut self) -> bool
     {
-        match self.commands.recv().unwrap()
+        let mut got_command = false;
+        let mut commands = self.commands.try_iter().peekable();
+        if commands.peek().is_some()
         {
-            ThreadMessage::Printer(c) => 
-            match c
+            got_command = true;
+            for command in commands
             {
-                PrintCommand::Refresh => self.objects.message_for_player = String::new(),
-                PrintCommand::PlayerUpdate(l) => self.objects.player = l,
-                PrintCommand::WorldUpdate(w) => self.objects.world = w,
-                PrintCommand::EntitiesUpdate(e) => self.objects.entities = e,
-                PrintCommand::MessageUpdate(m) => self.objects.message_for_player = m,
+                match command
+                {
+                    ThreadMessage::Printer(c) => 
+                    match c
+                    {
+                        PrintCommand::Refresh => self.objects.message_for_player = String::new(),
+                        PrintCommand::PlayerUpdate(l) => self.objects.player = l,
+                        PrintCommand::WorldUpdate(w) => self.objects.world = w,
+                        PrintCommand::EntitiesUpdate(e) => self.objects.entities = e,
+                        PrintCommand::MessageUpdate(m) => self.objects.message_for_player = m,
+                    }
+
+                    ThreadMessage::BroadCast(_) => (),
+
+                    _ => panic!("Printer given unrecognizable command")
+                }
             }
-
-            ThreadMessage::BroadCast(_) => (),
-
-            _ => panic!("Printer given unrecognizable command")
         }
+        else {sleep(Duration::from_millis(SCREEN_TICK_MILLIS));}
+
+        got_command
     }
 
     fn place_char

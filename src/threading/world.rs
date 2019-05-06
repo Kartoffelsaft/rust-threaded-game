@@ -24,6 +24,7 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>,
     }
 }
 
+#[derive(Debug)]
 pub enum WorldCommand
 {
     GenerateBuilding(((i32, i32), (u16, u16))),
@@ -43,7 +44,7 @@ struct WorldData
     elements: HashMap<(i32, i32), WorldElement>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum WorldElement
 {
     Wall,

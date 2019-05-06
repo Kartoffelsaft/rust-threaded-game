@@ -43,6 +43,7 @@ pub fn routine(commands: Receiver<ThreadMessage>, teller: Sender<ThreadMessage>,
     }
 }
 
+#[derive(Debug)]
 pub enum EntitesCommand
 {
     Spawn,

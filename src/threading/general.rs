@@ -173,6 +173,7 @@ struct ThreadMetadata
     _handle: thread::JoinHandle<()>,
 }
 
+#[derive(Debug)]
 pub enum ThreadMessage
 {
     Printer(super::printer::PrintCommand),
@@ -183,7 +184,7 @@ pub enum ThreadMessage
     BroadCast(BroadCastMessage),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BroadCastMessage
 {
     Gametick,
