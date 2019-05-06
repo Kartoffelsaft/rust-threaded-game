@@ -67,19 +67,20 @@ impl Entity for Cow
 {
     fn update(&mut self)
     {
-        let rand = self.rng.next_u32() % 4;
+        let rand = self.rng.next_u32() % 5;
 
         let dir = match rand
         {
-            0 => Direction::Up(1),
-            1 => Direction::Down(1),
-            2 => Direction::Left(1),
-            3 => Direction::Right(1),
+            0 => Some(Direction::Up(1)),
+            1 => Some(Direction::Down(1)),
+            2 => Some(Direction::Left(1)),
+            3 => Some(Direction::Right(1)),
+            4 => None,
 
             _ => panic!("rng value generated beyond expected"),
         };
 
-        self.move_direction(dir);
+        if let Some(rdir) = dir {self.move_direction(rdir)};
     }
 
     fn get_type(&self) -> EntityType
